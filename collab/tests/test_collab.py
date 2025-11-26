@@ -1,14 +1,8 @@
-import os
 import time
 import json
 from pathlib import Path
 import pytest
 
-# Make sure package root is on path when running tests from a nested folder
-import sys, os
-# Add the repository root (one level above `collab/`) to sys.path so `import collab` works
-repo_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(repo_root))
 from collab import server as collab
 
 LOG_DIR = Path(collab.LOG_DIR)
