@@ -215,6 +215,9 @@ def on_disconnect():
 
 if __name__ == '__main__':
     # using eventlet if available
-    import eventlet
-    eventlet.monkey_patch()
+    try:
+        import eventlet
+        eventlet.monkey_patch()
+    except ImportError:
+        pass
     socketio.run(app, host='0.0.0.0', port=5000)
