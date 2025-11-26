@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Lightweight Collaboration — Demo</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; margin: 16px; }
+      #meta { display:flex; gap: 16px; align-items:center }
+      #editor { border: 1px solid #ddd; min-height: 300px; padding:8px; white-space:pre-wrap; font-family: monospace; }
+      #editor .line { padding:1px 4px; }
+      #editor .conflict { background: rgba(255, 200, 200, 0.9); }
+      .toolbar { margin: 8px 0; }
+      input[type=text] { padding:6px; }
+      button { padding:6px 8px; }
+      #log { margin-top: 12px; font-size: 12px; color: #444; max-height:120px; overflow:auto; border-top:1px solid #eee; padding-top:6px; }
+    </style>
+  </head>
+  <body>
+    <h1>Lightweight Collaboration — Demo</h1>
+
+    <div id="meta">
+      <div>
+        <label>Document id: </label>
+        <input id="docId" type="text" value="default" />
+        <button id="join">Join</button>
+        <button id="newDoc">Create New</button>
+      </div>
+      <div>Session: <span id="sessionId">-</span> (<span id="userId">-</span>)</div>
+      <div>Editors online: <span id="presence">0</span></div>
+    </div>
+
+    <div class="toolbar">
+      <small>Type below. Updates are sent after <strong>400ms</strong> of inactivity.</small>
+    </div>
+
+    <div id="editor" contenteditable="true" spellcheck="false"></div>
+
+    <div id="log"></div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="/static/main.js"></script>
+  </body>
+</html>
