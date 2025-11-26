@@ -15,7 +15,8 @@ env/
 
 # Log files
 *.log
-logs/
+logs/*.jsonl
+!logs/.gitkeep
 
 # OS files
 .DS_Store
