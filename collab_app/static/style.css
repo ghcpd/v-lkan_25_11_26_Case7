@@ -1,0 +1,4 @@
+body { font-family: Arial, sans-serif; padding: 16px; }
+#editor { font-family: monospace; }
+#docs { margin-bottom: 12px; }
+.conflict-highlight { background: rgba(255, 0, 0, 0.2); }

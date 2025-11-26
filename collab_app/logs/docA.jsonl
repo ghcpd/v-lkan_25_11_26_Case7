@@ -1,0 +1,2 @@
+{"action": "create", "doc_id": "docA", "user_id": "user-7bb5ep", "ts": 1764141238.407502, "content": "1\n"}
+{"action": "edit", "doc_id": "docA", "user_id": "user-7bb5ep", "ts": 1764141238.6171417, "content": "1\n2\n", "start_line": 2, "end_line": 2}
