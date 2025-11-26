@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightweight Collaboration Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>📝 Collaborative Editor</h1>
+                <div class="doc-info">
+                    <input type="text" id="docId" placeholder="Enter document ID or create new" maxlength="20" class="doc-input">
+                    <button id="loadBtn" class="btn btn-primary">Load</button>
+                    <button id="createBtn" class="btn btn-secondary">Create New</button>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span id="userId" class="user-badge">Connecting...</span>
+                    <span id="presence" class="presence-badge">-</span>
+                    <span id="version" class="version-badge">v0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Sidebar: Document List & Presence -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Active Users</h3>
+                    <div id="presenceList" class="presence-list">
+                        <p class="empty-state">No users online</p>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>Edit History</h3>
+                    <div id="historyList" class="history-list">
+                        <p class="empty-state">No edits yet</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Editor -->
+            <main class="editor-container">
+                <textarea id="editor" class="editor" placeholder="Start typing to collaborate..."></textarea>
+                <div id="conflictIndicator" class="conflict-indicator hidden">
+                    ⚠️ Conflict Detected! Check highlighted lines for simultaneous edits.
+                </div>
+            </main>
+
+            <!-- Conflict Visualization -->
+            <div id="conflictPanel" class="conflict-panel hidden">
+                <h3>Conflict Visualization</h3>
+                <div id="conflictLines" class="conflict-lines"></div>
+                <button id="clearConflict" class="btn btn-small">Clear</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <span id="status" class="status-message">Ready</span>
+            <span id="stats" class="status-stats">Edits: 0 | Auto-save: On</span>
+        </footer>
+    </div>
+
+    <!-- Console Logger for Debug -->
+    <div id="debugConsole" class="debug-console">
+        <div class="debug-header">
+            <span>Debug Console</span>
+            <button id="toggleConsole" class="btn-toggle">–</button>
+        </div>
+        <div id="consoleLogs" class="console-logs"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='client.js') }}"></script>
+</body>
+</html>
