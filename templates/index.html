@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Collaborative Docs</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="container">
+    <h1>Collaborative Documents</h1>
+    <section>
+      <h2>Existing Documents</h2>
+      {% if docs %}
+      <ul>
+        {% for d in docs %}
+        <li><a href="{{ url_for('document_page', doc_id=d) }}">{{ d }}</a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No documents yet.</p>
+      {% endif %}
+    </section>
+    <section>
+      <h2>Create a New Document</h2>
+      <form id="create-form">
+        <input type="text" id="doc-id" placeholder="Optional ID (leave blank for random)" />
+        <button type="submit">Create</button>
+      </form>
+      <div id="create-result"></div>
+    </section>
+  </div>
+  <script>
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const docId = document.getElementById('doc-id').value.trim();
+      const resp = await fetch('/documents', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({doc_id: docId || undefined})
+      });
+      const data = await resp.json();
+      document.getElementById('create-result').textContent = `Created ${data.doc_id}`;
+      window.location.href = `/doc/${data.doc_id}`;
+    });
+  </script>
+</body>
+</html>

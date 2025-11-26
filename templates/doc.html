@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>{{ doc_id }} - Collaborative Doc</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-UYw4pPhG/PdINNpWCwFjJZNAl5hAEO3F5wd0ZaM8Xut2SN2dt4RPhJh792kzWQGg" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Document: {{ doc_id }}</h1>
+      <div id="presence">Online: <span id="presence-count">0</span></div>
+      <div id="user-id">You: <span id="user-id-val">?</span></div>
+      <a href="/">← Back to list</a>
+    </header>
+    <div id="conflict-banner" class="hidden"></div>
+    <textarea id="editor" spellcheck="false">{{ content }}</textarea>
+  </div>
+  <script src="{{ url_for('static', filename='client.js') }}"></script>
+  <script>
+    const DOC_ID = {{ doc_id | tojson }};
+    const INITIAL_CONTENT = {{ content | tojson }};
+    const INITIAL_VERSION = {{ version | tojson }};
+  </script>
+</body>
+</html>
