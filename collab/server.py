@@ -141,7 +141,7 @@ def on_join(data):
             DOCS[doc_id] = {'content': '', 'version': 0, 'last_updated': time.time(), 'edits': []}
     # send current content and presence
     emit('doc_state', {'doc_id': doc_id, 'content': DOCS[doc_id]['content'], 'version': DOCS[doc_id]['version']})
-    emit('presence', {'count': len(PRESENCE[doc_id])}, room=doc_id)
+    socketio.emit('presence', {'count': len(PRESENCE[doc_id])}, room=doc_id)
 
 
 @socketio.on('leave')
@@ -151,7 +151,7 @@ def on_leave(data):
     leave_room(doc_id)
     with DOCS_LOCK:
         PRESENCE.get(doc_id, {}).pop(sid, None)
-    emit('presence', {'count': len(PRESENCE.get(doc_id, {}))}, room=doc_id)
+    socketio.emit('presence', {'count': len(PRESENCE.get(doc_id, {}))}, room=doc_id)
 
 
 @socketio.on('edit')
@@ -187,8 +187,8 @@ def on_edit(data):
         doc['version'] = version
         doc['last_updated'] = timestamp
         doc['edits'].append(edit_record)
-    # broadcast to room other clients
-    emit('doc_update', {'doc_id': doc_id, 'content': content, 'version': version, 'timestamp': timestamp, 'user_id': user_id}, room=doc_id)
+    # broadcast to room all clients
+    socketio.emit('doc_update', {'doc_id': doc_id, 'content': content, 'version': version, 'timestamp': timestamp, 'user_id': user_id}, room=doc_id)
 
 
 @socketio.on('get_history')
@@ -196,7 +196,7 @@ def on_get_history(data):
     doc_id = data.get('doc_id')
     with DOCS_LOCK:
         edits = DOCS.get(doc_id, {}).get('edits', [])
-    emit('history', {'doc_id': doc_id, 'edits': edits})
+    emit('history', {'doc_id': doc_id, 'edits': edits[-100:]})
 
 
 # On disconnect, update presence
@@ -210,7 +210,7 @@ def on_disconnect():
                 sockets.pop(sid)
                 changed_docs.append(doc_id)
     for doc_id in changed_docs:
-        emit('presence', {'count': len(PRESENCE.get(doc_id, {}))}, room=doc_id)
+        socketio.emit('presence', {'count': len(PRESENCE.get(doc_id, {}))}, room=doc_id)
 
 
 if __name__ == '__main__':
