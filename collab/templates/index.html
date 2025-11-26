@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Collaborative Editor</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; }
+      #editor { width: 80%; height: 300px; }
+      #preview { width: 80%; height: 300px; overflow: auto; border: 1px solid #ccc; white-space: pre; padding: 8px; margin-top: 8px; }
+      .line { display: block; }
+      .conflict { background: #ffcccc; }
+      #presence { margin-top: 10px; }
+      #controls { margin-bottom: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Lightweight Collaborative Editor</h1>
+    <div id="controls">
+      <input id="docId" placeholder="Document ID (e.g., doc1)" value="doc1" />
+      <button id="joinBtn">Join / Create</button>
+      <span id="presence">Users online: 0</span>
+      <button id="historyBtn">Show history</button>
+    </div>
+
+    <textarea id="editor" placeholder="Start typing..." rows="10"></textarea>
+
+    <div id="preview"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js" integrity="sha512-/i2Xmv/0wz8Yf0X1m69q+V0Zbq6x+Af3Q4Orr3Jg+6o0/bzj6RkZwE8q7H2d5f9G2t7S35r7nQ8c3Y9ZDfp3cg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>
