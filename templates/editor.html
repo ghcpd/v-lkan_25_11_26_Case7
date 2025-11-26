@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Editor - {{ doc_id }}</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .doc-id {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .user-count {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-id-display {
+            background: #764ba2;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-home {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .btn-home:hover {
+            background: #5568d3;
+        }
+
+        .btn-history {
+            padding: 8px 16px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-history:hover {
+            background: #d97706;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor {
+            flex: 1;
+            width: 100%;
+            border: none;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+
+        .conflict-overlay {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            margin: 10px 20px;
+            border-radius: 4px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .conflict-overlay.show {
+            display: block;
+        }
+
+        .conflict-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .conflict-message {
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        .history-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .history-modal.show {
+            display: flex;
+        }
+
+        .history-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-header h2 {
+            color: #333;
+        }
+
+        .btn-close {
+            background: #e0e0e0;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .history-item {
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .history-item-preview {
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: #333;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .version-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1>📝 Collaborative Editor</h1>
+            <span class="doc-id">Doc: {{ doc_id }}</span>
+        </div>
+        <div class="header-right">
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connected</span>
+            </div>
+            <span class="user-count" id="userCount">1 user</span>
+            <span class="user-id-display" id="userIdDisplay">user-???</span>
+            <button class="btn-history" onclick="showHistory()">📜 History</button>
+            <a href="/" class="btn-home">🏠 Home</a>
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <div class="conflict-overlay" id="conflictOverlay">
+            <div class="conflict-title">⚠️ Conflict Detected</div>
+            <div class="conflict-message" id="conflictMessage"></div>
+        </div>
+        
+        <div class="editor-wrapper">
+            <textarea id="editor" placeholder="Start typing..."></textarea>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="history-modal" id="historyModal">
+        <div class="history-content">
+            <div class="history-header">
+                <h2>📜 Version History</h2>
+                <button class="btn-close" onclick="closeHistory()">×</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        const DOC_ID = "{{ doc_id }}";
+        const socket = io();
+        
+        let userId = null;
+        let currentVersion = 0;
+        let debounceTimer = null;
+        let isUpdatingFromServer = false;
+
+        const editor = document.getElementById('editor');
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const userCountEl = document.getElementById('userCount');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const conflictOverlay = document.getElementById('conflictOverlay');
+        const conflictMessage = document.getElementById('conflictMessage');
+        const notification = document.getElementById('notification');
+
+        // Socket event handlers
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            updateStatus('Connected', true);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            updateStatus('Disconnected', false);
+        });
+
+        socket.on('user_assigned', (data) => {
+            userId = data.user_id;
+            userIdDisplay.textContent = userId;
+            console.log('Assigned user ID:', userId);
+            
+            // Join the document
+            socket.emit('join_document', { doc_id: DOC_ID });
+        });
+
+        socket.on('document_state', (data) => {
+            console.log('Received document state:', data);
+            
+            isUpdatingFromServer = true;
+            editor.value = data.content;
+            currentVersion = data.version;
+            updateUserCount(data.user_count);
+            isUpdatingFromServer = false;
+        });
+
+        socket.on('document_updated', (data) => {
+            if (data.user_id === userId) {
+                return; // Ignore our own updates
+            }
+            
+            console.log('Document updated by', data.user_id);
+            
+            isUpdatingFromServer = true;
+            const cursorPos = editor.selectionStart;
+            editor.value = data.content;
+            currentVersion = data.version;
+            
+            // Try to maintain cursor position
+            editor.setSelectionRange(cursorPos, cursorPos);
+            isUpdatingFromServer = false;
+            
+            showNotification(`Updated by ${data.user_id}`);
+        });
+
+        socket.on('user_joined', (data) => {
+            console.log('User joined:', data.user_id);
+            updateUserCount(data.user_count);
+            showNotification(`${data.user_id} joined`);
+        });
+
+        socket.on('user_left', (data) => {
+            console.log('User left:', data.user_id);
+            updateUserCount(data.user_count);
+            showNotification(`${data.user_id} left`);
+        });
+
+        socket.on('conflict_detected', (data) => {
+            console.warn('Conflict detected:', data);
+            
+            const conflictUsers = data.conflicts.map(c => c.user_id).join(', ');
+            const lines = data.current_lines.join(', ');
+            
+            conflictMessage.textContent = 
+                `Concurrent edits detected on line(s) ${lines} with ${conflictUsers}. ` +
+                `Changes have been merged using Last-Write-Wins strategy.`;
+            
+            conflictOverlay.classList.add('show');
+            
+            // Highlight affected lines (simulation)
+            highlightConflictLines(data.current_lines);
+            
+            setTimeout(() => {
+                conflictOverlay.classList.remove('show');
+            }, 5000);
+        });
+
+        socket.on('history_response', (data) => {
+            displayHistory(data.history);
+        });
+
+        // Editor event handler with debouncing
+        editor.addEventListener('input', () => {
+            if (isUpdatingFromServer) {
+                return;
+            }
+            
+            // Clear existing timer
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            
+            // Set new timer (400ms debounce)
+            debounceTimer = setTimeout(() => {
+                const content = editor.value;
+                const cursorPosition = editor.selectionStart;
+                
+                socket.emit('edit_document', {
+                    content: content,
+                    cursor_position: cursorPosition
+                });
+                
+                console.log('Sent edit to server');
+            }, 400);
+        });
+
+        function updateStatus(text, connected) {
+            statusText.textContent = text;
+            statusDot.style.background = connected ? '#4caf50' : '#f44336';
+        }
+
+        function updateUserCount(count) {
+            userCountEl.textContent = count === 1 ? '1 user' : `${count} users`;
+        }
+
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function highlightConflictLines(lines) {
+            // Simulate conflict highlighting by briefly changing background
+            const originalBg = editor.style.background;
+            editor.style.background = '#fff3cd';
+            
+            setTimeout(() => {
+                editor.style.background = originalBg;
+            }, 2000);
+        }
+
+        function showHistory() {
+            socket.emit('request_history', { doc_id: DOC_ID });
+            document.getElementById('historyModal').classList.add('show');
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').classList.remove('show');
+        }
+
+        function displayHistory(history) {
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="text-align:center;color:#999;">No edit history yet</p>';
+                return;
+            }
+            
+            historyList.innerHTML = history.reverse().map(item => `
+                <div class="history-item">
+                    <div class="history-item-header">
+                        <span><strong>${item.user_id}</strong></span>
+                        <span class="version-badge">v${item.version}</span>
+                    </div>
+                    <div class="history-item-header">
+                        <span>${new Date(item.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div class="history-item-preview">${item.preview || '(empty)'}</div>
+                </div>
+            `).join('');
+        }
+
+        // Close history modal when clicking outside
+        document.getElementById('historyModal').addEventListener('click', (e) => {
+            if (e.target.id === 'historyModal') {
+                closeHistory();
+            }
+        });
+    </script>
+</body>
+</html>

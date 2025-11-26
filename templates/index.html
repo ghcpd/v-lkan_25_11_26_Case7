@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Document Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #444;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+        }
+
+        .btn-secondary:hover {
+            background: #663d8e;
+        }
+
+        .features {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .features h3 {
+            color: #444;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .features li {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 25px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Collaborative Document Editor</h1>
+        <p class="subtitle">Real-time editing with conflict detection and version history</p>
+
+        <div class="section">
+            <h2>Create New Document</h2>
+            <button onclick="createDocument()" class="btn-secondary">Create New Document</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section">
+            <h2>Open Existing Document</h2>
+            <div class="input-group">
+                <input type="text" id="docIdInput" placeholder="Enter document ID (e.g., abc123)">
+                <button onclick="openDocument()">Open</button>
+            </div>
+        </div>
+
+        <div class="features">
+            <h3>Features</h3>
+            <ul>
+                <li>Real-time collaborative editing</li>
+                <li>Anonymous user sessions (no login required)</li>
+                <li>Conflict detection and visualization</li>
+                <li>Persistent storage with version history</li>
+                <li>Active user presence awareness</li>
+                <li>Client-side edit debouncing (400ms)</li>
+                <li>Last-Write-Wins conflict resolution</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function createDocument() {
+            try {
+                const response = await fetch('/api/documents', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                window.location.href = `/document/${data.doc_id}`;
+            } catch (error) {
+                console.error('Error creating document:', error);
+                alert('Failed to create document');
+            }
+        }
+
+        function openDocument() {
+            const docId = document.getElementById('docIdInput').value.trim();
+            
+            if (!docId) {
+                alert('Please enter a document ID');
+                return;
+            }
+            
+            window.location.href = `/document/${docId}`;
+        }
+
+        // Allow opening document with Enter key
+        document.getElementById('docIdInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                openDocument();
+            }
+        });
+    </script>
+</body>
+</html>
